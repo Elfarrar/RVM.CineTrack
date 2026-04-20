@@ -1,0 +1,35 @@
+@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <nav class="sidebar">
+        <div class="sidebar-header">
+            <span class="brand-mark">C</span>
+            <span class="navbar-brand">RVM.CineTrack</span>
+        </div>
+        <div class="sidebar-nav">
+            <NavLink href="/" Match="NavLinkMatch.All" class="nav-item">
+                <span class="nav-icon">&#9679;</span>
+                <strong>Dashboard</strong>
+            </NavLink>
+            <NavLink href="/search" class="nav-item">
+                <span class="nav-icon">&#128269;</span>
+                <strong>Buscar</strong>
+            </NavLink>
+            <NavLink href="/watchlist" class="nav-item">
+                <span class="nav-icon">&#127916;</span>
+                <strong>Minha Lista</strong>
+            </NavLink>
+            <NavLink href="/rankings" class="nav-item">
+                <span class="nav-icon">&#127942;</span>
+                <strong>Rankings</strong>
+            </NavLink>
+            <NavLink href="/alerts" class="nav-item">
+                <span class="nav-icon">&#128276;</span>
+                <strong>Alertas</strong>
+            </NavLink>
+        </div>
+    </nav>
+    <main class="main-content">
+        @Body
+    </main>
+</div>

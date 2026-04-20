@@ -1,0 +1,131 @@
+@page "/rankings"
+@using Microsoft.EntityFrameworkCore
+@using RVM.CineTrack.Infrastructure.Data
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>Rankings — RVM.CineTrack</PageTitle>
+
+<div class="page-section">
+    <span class="section-pill">Rankings</span>
+    <h2>Rankings da comunidade</h2>
+
+    <div class="toolbar-chips">
+        <button class="chip @(showTop ? "active" : "")" @onclick="() => showTop = true">Mais bem avaliados</button>
+        <button class="chip @(!showTop ? "active" : "")" @onclick="() => showTop = false">Menos bem avaliados</button>
+    </div>
+</div>
+
+@if (showTop)
+{
+    <div class="ranking-section">
+        <h3>Top Avaliados</h3>
+        @if (topRated.Count == 0)
+        {
+            <p class="empty-state">Nenhuma avaliacao ainda</p>
+        }
+        else
+        {
+            <div class="ranking-list">
+                @for (var i = 0; i < topRated.Count; i++)
+                {
+                    var item = topRated[i];
+                    <div class="ranking-item">
+                        <span class="ranking-position">@(i + 1)</span>
+                        @if (!string.IsNullOrEmpty(item.PosterPath))
+                        {
+                            <img src="https://image.tmdb.org/t/p/w92@(item.PosterPath)" alt="@item.Title" class="ranking-poster" />
+                        }
+                        <div class="ranking-info">
+                            <strong>@item.Title</strong>
+                            <span class="ranking-meta">@item.ReviewCount reviews | @item.Genres</span>
+                        </div>
+                        <div class="ranking-score">
+                            <span class="score-value">@item.AvgRating.ToString("F1")</span>
+                            <span class="score-label">oscars</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="ranking-section">
+        <h3>Menos Avaliados</h3>
+        @if (worstRated.Count == 0)
+        {
+            <p class="empty-state">Nenhuma avaliacao ainda</p>
+        }
+        else
+        {
+            <div class="ranking-list">
+                @for (var i = 0; i < worstRated.Count; i++)
+                {
+                    var item = worstRated[i];
+                    <div class="ranking-item">
+                        <span class="ranking-position">@(i + 1)</span>
+                        @if (!string.IsNullOrEmpty(item.PosterPath))
+                        {
+                            <img src="https://image.tmdb.org/t/p/w92@(item.PosterPath)" alt="@item.Title" class="ranking-poster" />
+                        }
+                        <div class="ranking-info">
+                            <strong>@item.Title</strong>
+                            <span class="ranking-meta">@item.ReviewCount reviews | @item.Genres</span>
+                        </div>
+                        <div class="ranking-score worst">
+                            <span class="score-value">@item.AvgRating.ToString("F1")</span>
+                            <span class="score-label">oscars</span>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    private bool showTop = true;
+    private List<RankedMedia> topRated = [];
+    private List<RankedMedia> worstRated = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var scope = ScopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CineTrackDbContext>();
+
+        var grouped = await db.Reviews
+            .Where(r => r.MediaId != null && r.SeasonId == null && r.EpisodeId == null)
+            .GroupBy(r => r.MediaId)
+            .Select(g => new { MediaId = g.Key, Avg = g.Average(r => r.Rating), Count = g.Count() })
+            .Where(x => x.Count >= 1)
+            .ToListAsync();
+
+        var mediaIds = grouped.Select(g => g.MediaId).ToList();
+        var mediaMap = await db.Media
+            .Where(m => mediaIds.Contains(m.Id))
+            .ToDictionaryAsync(m => m.Id);
+
+        topRated = grouped
+            .OrderByDescending(g => g.Avg).ThenByDescending(g => g.Count)
+            .Take(20)
+            .Select(g => ToRankedMedia(g.MediaId!.Value, g.Avg, g.Count, mediaMap))
+            .Where(r => r != null).Cast<RankedMedia>()
+            .ToList();
+
+        worstRated = grouped
+            .OrderBy(g => g.Avg).ThenByDescending(g => g.Count)
+            .Take(20)
+            .Select(g => ToRankedMedia(g.MediaId!.Value, g.Avg, g.Count, mediaMap))
+            .Where(r => r != null).Cast<RankedMedia>()
+            .ToList();
+    }
+
+    private static RankedMedia? ToRankedMedia(int mediaId, double avg, int count, Dictionary<int, Domain.Entities.Media> map)
+    {
+        if (!map.TryGetValue(mediaId, out var m)) return null;
+        return new RankedMedia(m.Title, m.PosterPath, m.Genres, Math.Round(avg, 1), count);
+    }
+
+    private record RankedMedia(string Title, string? PosterPath, string? Genres, double AvgRating, int ReviewCount);
+}

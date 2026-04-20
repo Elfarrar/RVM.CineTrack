@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: src/RVM.CineTrack.API/Dockerfile
+    container_name: rvmcinetrack-app
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__DefaultConnection=Host=rvmtech-postgres;Port=5432;Database=cinetrack;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - Tmdb__ApiKey=${TMDB_API_KEY}
+      - ApiKeys__Keys__0__Key=${API_KEY}
+      - ApiKeys__Keys__0__AppId=cinetrack
+      - ApiKeys__Keys__0__Name=CineTrack Production
+      - Seq__ServerUrl=http://rvmtech-seq:5341
+      - App__PathBase=/cinetrack
+    networks:
+      - rvmtech
+    ports:
+      - "127.0.0.1:5090:8080"
+
+networks:
+  rvmtech:
+    external: true
+    name: rvmtech

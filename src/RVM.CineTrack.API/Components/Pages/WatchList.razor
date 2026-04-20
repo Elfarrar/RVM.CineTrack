@@ -1,0 +1,132 @@
+@page "/watchlist"
+@using Microsoft.EntityFrameworkCore
+@using RVM.CineTrack.Domain.Enums
+@using RVM.CineTrack.Infrastructure.Data
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>Minha Lista — RVM.CineTrack</PageTitle>
+
+<div class="page-section">
+    <span class="section-pill">Minha Lista</span>
+    <h2>Watchlist</h2>
+
+    <div class="toolbar-chips">
+        <button class="chip @(filter == null ? "active" : "")" @onclick="() => SetFilter(null)">Todos (@total)</button>
+        <button class="chip @(filter == WatchStatus.WantToWatch ? "active" : "")" @onclick="() => SetFilter(WatchStatus.WantToWatch)">Quero assistir (@wantCount)</button>
+        <button class="chip @(filter == WatchStatus.Watching ? "active" : "")" @onclick="() => SetFilter(WatchStatus.Watching)">Assistindo (@watchingCount)</button>
+        <button class="chip @(filter == WatchStatus.Watched ? "active" : "")" @onclick="() => SetFilter(WatchStatus.Watched)">Assistido (@watchedCount)</button>
+        <button class="chip @(filter == WatchStatus.Dropped ? "active" : "")" @onclick="() => SetFilter(WatchStatus.Dropped)">Abandonado (@droppedCount)</button>
+    </div>
+
+    <div class="mini-kpis">
+        <div class="mini-kpi accent">
+            <span class="mini-value">@total</span>
+            <span class="mini-label">Total</span>
+        </div>
+        <div class="mini-kpi">
+            <span class="mini-value">@movieCount</span>
+            <span class="mini-label">Filmes</span>
+        </div>
+        <div class="mini-kpi">
+            <span class="mini-value">@seriesCount</span>
+            <span class="mini-label">Series</span>
+        </div>
+    </div>
+</div>
+
+@if (items.Count > 0)
+{
+    <div class="media-grid">
+        @foreach (var item in items)
+        {
+            <div class="media-card">
+                @if (!string.IsNullOrEmpty(item.PosterPath))
+                {
+                    <img src="https://image.tmdb.org/t/p/w300@(item.PosterPath)" alt="@item.Title" class="media-poster" />
+                }
+                else
+                {
+                    <div class="media-poster placeholder">Sem poster</div>
+                }
+                <div class="media-info">
+                    <h4>@item.Title</h4>
+                    <span class="badge-status status-@item.Status.ToString().ToLower()">@StatusLabel(item.Status)</span>
+                    <span class="media-type badge-@(item.Type == MediaType.Movie ? "movie" : "tv")">
+                        @(item.Type == MediaType.Movie ? "Filme" : "Serie")
+                    </span>
+                    @if (item.Rating.HasValue)
+                    {
+                        <span class="media-rating">@RenderOscars(item.Rating.Value)</span>
+                    }
+                    @if (item.Genres != null)
+                    {
+                        <span class="media-genres">@item.Genres</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="empty-state">Nenhum titulo na lista. Use a busca para adicionar filmes e series.</div>
+}
+
+@code {
+    private WatchStatus? filter;
+    private List<WatchListItemView> items = [];
+    private int total, wantCount, watchingCount, watchedCount, droppedCount, movieCount, seriesCount;
+
+    protected override async Task OnInitializedAsync() => await LoadData();
+
+    private async Task SetFilter(WatchStatus? status)
+    {
+        filter = status;
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        using var scope = ScopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CineTrackDbContext>();
+
+        var query = db.WatchListItems.Include(w => w.Media).AsQueryable();
+
+        total = await query.CountAsync();
+        wantCount = await query.CountAsync(w => w.Status == WatchStatus.WantToWatch);
+        watchingCount = await query.CountAsync(w => w.Status == WatchStatus.Watching);
+        watchedCount = await query.CountAsync(w => w.Status == WatchStatus.Watched);
+        droppedCount = await query.CountAsync(w => w.Status == WatchStatus.Dropped);
+        movieCount = await query.CountAsync(w => w.Media.Type == MediaType.Movie);
+        seriesCount = await query.CountAsync(w => w.Media.Type == MediaType.TvSeries);
+
+        if (filter.HasValue)
+            query = query.Where(w => w.Status == filter.Value);
+
+        items = await query
+            .OrderByDescending(w => w.UpdatedAt)
+            .Select(w => new WatchListItemView(
+                w.Id, w.Media.Title, w.Media.PosterPath, w.Media.Type,
+                w.Status, w.Rating, w.Media.Genres))
+            .ToListAsync();
+    }
+
+    private static string StatusLabel(WatchStatus s) => s switch
+    {
+        WatchStatus.WantToWatch => "Quero assistir",
+        WatchStatus.Watching => "Assistindo",
+        WatchStatus.Watched => "Assistido",
+        WatchStatus.Dropped => "Abandonado",
+        _ => s.ToString()
+    };
+
+    private static string RenderOscars(int rating)
+    {
+        var oscars = string.Concat(Enumerable.Repeat("\U0001F3C6", rating));
+        var empty = string.Concat(Enumerable.Repeat("\u25CB", 5 - rating));
+        return oscars + empty;
+    }
+
+    private record WatchListItemView(int Id, string Title, string? PosterPath,
+        MediaType Type, WatchStatus Status, int? Rating, string? Genres);
+}

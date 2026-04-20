@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/RVM.CineTrack.Domain/RVM.CineTrack.Domain.csproj" />
+    <Project Path="src/RVM.CineTrack.Infrastructure/RVM.CineTrack.Infrastructure.csproj" />
+    <Project Path="src/RVM.CineTrack.API/RVM.CineTrack.API.csproj" />
+  </Folder>
+  <Folder Name="/test/">
+    <Project Path="test/RVM.CineTrack.Test/RVM.CineTrack.Test.csproj" />
+  </Folder>
+</Solution>

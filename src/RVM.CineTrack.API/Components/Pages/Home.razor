@@ -1,0 +1,137 @@
+@page "/"
+@using Microsoft.EntityFrameworkCore
+@using RVM.CineTrack.Domain.Enums
+@using RVM.CineTrack.Infrastructure.Data
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>Dashboard — RVM.CineTrack</PageTitle>
+
+<div class="hero-panel">
+    <div class="hero-content">
+        <span class="hero-eyebrow">Painel CineTrack</span>
+        <div class="summary-kpi">
+            <span class="kpi-value">@totalMedia</span>
+            <span class="kpi-label">titulos catalogados</span>
+        </div>
+        <div class="mini-kpis">
+            <div class="mini-kpi accent">
+                <span class="mini-value">@totalUsers</span>
+                <span class="mini-label">Usuarios</span>
+            </div>
+            <div class="mini-kpi">
+                <span class="mini-value">@totalReviews</span>
+                <span class="mini-label">Reviews</span>
+            </div>
+            <div class="mini-kpi">
+                <span class="mini-value">@totalMovies</span>
+                <span class="mini-label">Filmes</span>
+            </div>
+            <div class="mini-kpi">
+                <span class="mini-value">@totalSeries</span>
+                <span class="mini-label">Series</span>
+            </div>
+        </div>
+    </div>
+    <div class="hero-chips">
+        <span class="hero-chip">@avgRating.ToString("F1") nota media</span>
+        <span class="hero-chip">@totalEpisodeWatches episodios assistidos</span>
+        <span class="hero-chip">@pendingAlerts alertas pendentes</span>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    <div class="dashboard-card">
+        <h3>Top Avaliados</h3>
+        @if (topRated.Count == 0)
+        {
+            <p class="empty-state">Nenhuma avaliacao ainda</p>
+        }
+        else
+        {
+            @foreach (var item in topRated)
+            {
+                <div class="media-row">
+                    <span class="media-title">@item.Title</span>
+                    <span class="media-rating">@RenderOscars(item.AvgRating)</span>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="dashboard-card">
+        <h3>Atividade Recente</h3>
+        @if (recentReviews.Count == 0)
+        {
+            <p class="empty-state">Nenhuma review ainda</p>
+        }
+        else
+        {
+            @foreach (var r in recentReviews)
+            {
+                <div class="media-row">
+                    <span class="media-title">@r.Username avaliou @r.MediaTitle</span>
+                    <span class="media-rating">@RenderOscars(r.Rating)</span>
+                </div>
+            }
+        }
+    </div>
+
+    <div class="dashboard-card">
+        <h3>Acoes rapidas</h3>
+        <a href="/search" class="action-link">Buscar filmes e series</a>
+        <a href="/watchlist" class="action-link">Ver minha lista</a>
+        <a href="/rankings" class="action-link">Ver rankings da comunidade</a>
+    </div>
+</div>
+
+@code {
+    private int totalMedia, totalUsers, totalReviews, totalMovies, totalSeries;
+    private int totalEpisodeWatches, pendingAlerts;
+    private double avgRating;
+    private List<TopMediaItem> topRated = [];
+    private List<RecentReview> recentReviews = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var scope = ScopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CineTrackDbContext>();
+
+        totalMedia = await db.Media.CountAsync();
+        totalUsers = await db.Users.CountAsync();
+        totalReviews = await db.Reviews.CountAsync();
+        totalMovies = await db.Media.CountAsync(m => m.Type == MediaType.Movie);
+        totalSeries = await db.Media.CountAsync(m => m.Type == MediaType.TvSeries);
+        totalEpisodeWatches = await db.EpisodeWatches.CountAsync();
+        pendingAlerts = await db.ReleaseAlerts.CountAsync(a => !a.IsRead);
+        avgRating = await db.Reviews.AverageAsync(r => (double?)r.Rating) ?? 0;
+
+        topRated = await db.Reviews
+            .Where(r => r.MediaId != null && r.SeasonId == null && r.EpisodeId == null)
+            .GroupBy(r => new { r.MediaId, r.Media!.Title })
+            .Select(g => new { g.Key.Title, AvgRating = g.Average(r => r.Rating), Count = g.Count() })
+            .Where(x => x.Count >= 1)
+            .OrderByDescending(x => x.AvgRating)
+            .Take(5)
+            .ToListAsync()
+            .ContinueWith(t => t.Result.Select(x => new TopMediaItem(x.Title!, Math.Round(x.AvgRating, 1))).ToList());
+
+        recentReviews = await db.Reviews
+            .Include(r => r.User).Include(r => r.Media)
+            .Where(r => r.Media != null)
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(5)
+            .ToListAsync()
+            .ContinueWith(t => t.Result.Select(r => new RecentReview(r.User.Username, r.Media!.Title, r.Rating)).ToList());
+    }
+
+    private static string RenderOscars(double rating)
+    {
+        var full = (int)Math.Round(rating);
+        var oscars = string.Concat(Enumerable.Repeat("\U0001F3C6", full));
+        var empty = string.Concat(Enumerable.Repeat("\u25CB", 5 - full));
+        return oscars + empty;
+    }
+
+    private record TopMediaItem(string Title, double AvgRating);
+    private record RecentReview(string Username, string MediaTitle, int Rating);
+}

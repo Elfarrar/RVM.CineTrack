@@ -1,0 +1,105 @@
+@page "/search"
+@using RVM.CineTrack.Infrastructure.Services
+@inject TmdbClient Tmdb
+
+<PageTitle>Buscar — RVM.CineTrack</PageTitle>
+
+<div class="page-section">
+    <span class="section-pill">Busca</span>
+    <h2>Buscar filmes e series</h2>
+
+    <div class="search-bar">
+        <input type="text" @bind="query" @bind:event="oninput" @onkeydown="HandleKey"
+               placeholder="Digite o nome do filme ou serie..." class="search-input" />
+        <button @onclick="DoSearch" class="btn-search" disabled="@searching">
+            @(searching ? "Buscando..." : "Buscar")
+        </button>
+    </div>
+</div>
+
+@if (results.Count > 0)
+{
+    <div class="media-grid">
+        @foreach (var item in results)
+        {
+            <div class="media-card">
+                @if (!string.IsNullOrEmpty(item.PosterPath))
+                {
+                    <img src="https://image.tmdb.org/t/p/w300@(item.PosterPath)" alt="@item.Title" class="media-poster" />
+                }
+                else
+                {
+                    <div class="media-poster placeholder">Sem poster</div>
+                }
+                <div class="media-info">
+                    <h4>@item.Title</h4>
+                    <span class="media-type badge-@item.MediaType">@(item.MediaType == "movie" ? "Filme" : "Serie")</span>
+                    <span class="media-year">@item.ReleaseDate</span>
+                    <span class="media-tmdb-rating">TMDB @item.Rating.ToString("F1")</span>
+                    @if (!string.IsNullOrEmpty(item.Overview))
+                    {
+                        <p class="media-overview">@Truncate(item.Overview, 150)</p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <div class="pagination">
+            <button @onclick="PrevPage" disabled="@(currentPage <= 1)" class="btn-page">Anterior</button>
+            <span>Pagina @currentPage de @totalPages (@totalResults resultados)</span>
+            <button @onclick="NextPage" disabled="@(currentPage >= totalPages)" class="btn-page">Proxima</button>
+        </div>
+    }
+}
+else if (searched && !searching)
+{
+    <div class="empty-state">Nenhum resultado encontrado para "@query"</div>
+}
+
+@code {
+    private string query = "";
+    private bool searching, searched;
+    private int currentPage = 1, totalPages, totalResults;
+    private List<SearchResult> results = [];
+
+    private async Task HandleKey(Microsoft.AspNetCore.Components.Web.KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter") await DoSearch();
+    }
+
+    private async Task DoSearch()
+    {
+        if (string.IsNullOrWhiteSpace(query)) return;
+        searching = true;
+        searched = true;
+        StateHasChanged();
+
+        var response = await Tmdb.SearchMultiAsync(query, currentPage);
+        if (response != null)
+        {
+            totalPages = response.TotalPages;
+            totalResults = response.TotalResults;
+            results = response.Results
+                .Where(r => r.MediaType is "movie" or "tv")
+                .Select(r => new SearchResult(
+                    r.Id, r.MediaType, r.Title ?? r.Name ?? "",
+                    r.Overview, r.PosterPath,
+                    r.ReleaseDate ?? r.FirstAirDate ?? "",
+                    r.VoteAverage))
+                .ToList();
+        }
+        searching = false;
+    }
+
+    private async Task PrevPage() { currentPage--; await DoSearch(); }
+    private async Task NextPage() { currentPage++; await DoSearch(); }
+
+    private static string Truncate(string text, int max) =>
+        text.Length <= max ? text : text[..max] + "...";
+
+    private record SearchResult(int TmdbId, string MediaType, string Title,
+        string? Overview, string? PosterPath, string ReleaseDate, double Rating);
+}

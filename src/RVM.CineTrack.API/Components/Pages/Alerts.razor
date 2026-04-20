@@ -1,0 +1,76 @@
+@page "/alerts"
+@using Microsoft.EntityFrameworkCore
+@using RVM.CineTrack.Infrastructure.Data
+@inject IServiceScopeFactory ScopeFactory
+
+<PageTitle>Alertas — RVM.CineTrack</PageTitle>
+
+<div class="page-section">
+    <span class="section-pill">Alertas</span>
+    <h2>Proximos lancamentos</h2>
+
+    <div class="mini-kpis">
+        <div class="mini-kpi accent">
+            <span class="mini-value">@totalAlerts</span>
+            <span class="mini-label">Total</span>
+        </div>
+        <div class="mini-kpi">
+            <span class="mini-value">@unreadAlerts</span>
+            <span class="mini-label">Nao lidos</span>
+        </div>
+    </div>
+</div>
+
+@if (alerts.Count > 0)
+{
+    <div class="alerts-list">
+        @foreach (var alert in alerts)
+        {
+            <div class="alert-item @(alert.IsRead ? "" : "unread")">
+                @if (!string.IsNullOrEmpty(alert.PosterPath))
+                {
+                    <img src="https://image.tmdb.org/t/p/w92@(alert.PosterPath)" alt="@alert.Title" class="alert-poster" />
+                }
+                <div class="alert-info">
+                    <strong>@alert.Title</strong>
+                    <p>@alert.Description</p>
+                    <span class="alert-date">Estreia: @alert.ReleaseDate.ToString("dd/MM/yyyy")</span>
+                </div>
+                @if (!alert.IsRead)
+                {
+                    <span class="alert-badge">Novo</span>
+                }
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="empty-state">Nenhum alerta de lancamento. Adicione filmes e series a sua lista para receber alertas.</div>
+}
+
+@code {
+    private int totalAlerts, unreadAlerts;
+    private List<AlertView> alerts = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        using var scope = ScopeFactory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<CineTrackDbContext>();
+
+        totalAlerts = await db.ReleaseAlerts.CountAsync();
+        unreadAlerts = await db.ReleaseAlerts.CountAsync(a => !a.IsRead);
+
+        alerts = await db.ReleaseAlerts
+            .Include(a => a.Media)
+            .OrderByDescending(a => a.ReleaseDate)
+            .Take(50)
+            .Select(a => new AlertView(
+                a.Id, a.Title, a.Description, a.ReleaseDate,
+                a.IsRead, a.Media.PosterPath))
+            .ToListAsync();
+    }
+
+    private record AlertView(int Id, string Title, string? Description,
+        DateTime ReleaseDate, bool IsRead, string? PosterPath);
+}
