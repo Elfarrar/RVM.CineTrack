@@ -1,0 +1,13 @@
+{
+  "name": "rvm-cinetrack-e2e",
+  "version": "1.0.0",
+  "description": "E2E tests for RVM.CineTrack",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  },
+  "scripts": {
+    "test": "npx playwright test",
+    "test:headed": "npx playwright test --headed",
+    "report": "npx playwright show-report"
+  }
+}
