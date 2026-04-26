@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RVM.CineTrack - Manual do Usuario</title>
+  <style>
+    :root {
+      --primary: #dc2626;
+      --surface: #ffffff;
+      --bg: #f4f6fa;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --sidebar-bg: #1c0a0a;
+      --accent: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    .container { max-width: 1100px; margin: 0 auto; padding: 2rem 1.5rem; }
+    header {
+      background: var(--sidebar-bg);
+      color: white;
+      padding: 3rem 1.5rem;
+      text-align: center;
+    }
+    header h1 { font-size: 2rem; margin-bottom: 0.5rem; }
+    header p { color: #fca5a5; font-size: 1rem; }
+    header .version { color: #f87171; font-size: 0.85rem; margin-top: 0.5rem; }
+    nav {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    nav .container { padding: 0; }
+    nav ul { list-style: none; display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    nav a {
+      display: inline-block;
+      padding: 0.35rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.85rem;
+      color: var(--text);
+      text-decoration: none;
+      background: var(--bg);
+      transition: background 0.2s;
+    }
+    nav a:hover { background: var(--primary); color: white; }
+    section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 1rem;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    section h2 {
+      font-size: 1.5rem;
+      color: var(--primary);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 2px solid var(--border);
+    }
+    .description { font-size: 1.05rem; margin-bottom: 1.25rem; color: var(--text); }
+    .features, .tips {
+      background: var(--bg);
+      border-radius: 0.75rem;
+      padding: 1rem 1.25rem;
+      margin-bottom: 1.25rem;
+    }
+    .features ul, .tips ul { margin-top: 0.5rem; padding-left: 1.25rem; }
+    .features li, .tips li { margin-bottom: 0.35rem; }
+    .tips { background: #fff1f2; border-left: 4px solid var(--accent); }
+    .tips strong { color: var(--accent); }
+    .screenshots {
+      display: flex;
+      gap: 1.5rem;
+      margin-top: 1rem;
+      align-items: flex-start;
+    }
+    .screenshot-group {
+      position: relative;
+      flex: 1;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      overflow: hidden;
+    }
+    .screenshot-group.mobile { flex: 0 0 200px; max-width: 200px; }
+    .screenshot-group img { width: 100%; display: block; }
+    .badge {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.5rem;
+      background: var(--sidebar-bg);
+      color: white;
+      font-size: 0.7rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 0.35rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .no-screenshot {
+      background: var(--bg);
+      padding: 2rem;
+      border-radius: 0.75rem;
+      text-align: center;
+      color: var(--text-muted);
+    }
+    footer {
+      text-align: center;
+      padding: 2rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+    @media (max-width: 768px) {
+      .screenshots { flex-direction: column; }
+      .screenshot-group.mobile { max-width: 100%; flex: 1; }
+      section { padding: 1.25rem; }
+    }
+    @media print {
+      nav { display: none; }
+      section { break-inside: avoid; page-break-inside: avoid; }
+      .screenshots { flex-direction: column; }
+      .screenshot-group.mobile { max-width: 250px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>RVM.CineTrack - Manual do Usuario</h1>
+    <p>Tracking de Filmes e Series — Guia Completo de Funcionalidades</p>
+    <div class="version">Gerado em 26/04/2026 | RVM Tech</div>
+  </header>
+
+  <nav>
+    <div class="container">
+      <ul>
+        <li><a href="#home">1. Home / Dashboard</a></li>
+        <li><a href="#search">2. Busca de Filmes e Series</a></li>
+        <li><a href="#watchlist">3. Watchlist (Quero Assistir)</a></li>
+        <li><a href="#rankings">4. Rankings</a></li>
+        <li><a href="#alerts">5. Alertas de Lancamentos</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <div class="container">
+    <section id="visao-geral">
+      <h2>Visao Geral</h2>
+      <p class="description">
+        O <strong>RVM.CineTrack</strong> e um sistema de tracking de filmes e series.
+        Registre o que voce assistiu, avalie com 1 a 5 oscars, monte sua watchlist e
+        descubra novos titulos com recomendacoes personalizadas via TMDB.
+      </p>
+      <div class="features">
+        <strong>Recursos principais:</strong>
+        <ul>
+          <li><strong>Tracking completo</strong> — historico de filmes e series assistidos</li>
+          <li><strong>Avaliacao por oscars</strong> — escala exclusiva de 1 a 5 oscars</li>
+          <li><strong>Watchlist</strong> — organize o que quer assistir com prioridades</li>
+          <li><strong>Busca via TMDB</strong> — catalogo completo de filmes e series</li>
+          <li><strong>Rankings sociais</strong> — veja o que a comunidade recomenda</li>
+          <li><strong>Alertas de lancamento</strong> — notificacoes de novos episodios e estreias</li>
+        </ul>
+      </div>
+    </section>
+
+    
+    <section id="home">
+      <h2>1. Home / Dashboard</h2>
+      <p class="description">Pagina inicial do RVM.CineTrack com resumo da atividade recente: filmes assistidos, series em acompanhamento, recomendacoes personalizadas e lancamentos proximos.</p>
+      <div class="features">
+        <strong>Funcionalidades:</strong>
+        <ul>
+            <li>Resumo: filmes assistidos, series ativas e avaliacoes pendentes</li>
+            <li>Recomendacoes baseadas no historico de avaliacoes</li>
+            <li>Lancamentos proximos de filmes e series monitorados</li>
+            <li>Ultimas atividades do feed social</li>
+            <li>Acesso rapido a busca e watchlist</li>
+        </ul>
+      </div>
+      <div class="tips">
+          <strong>Dicas:</strong>
+          <ul><li>Quanto mais filmes e series voce avaliar, melhores ficam as recomendacoes.</li>
+            <li>O dashboard atualiza automaticamente quando novos lancamentos sao detectados via TMDB.</li></ul>
+        </div>
+      <p class="no-screenshot"><em>Screenshot nao disponivel. Execute o script Playwright para gerar.</em></p>
+    </section>
+    <section id="search">
+      <h2>2. Busca de Filmes e Series</h2>
+      <p class="description">Encontre qualquer filme ou serie usando a busca integrada com a API do TMDB. Veja ficha tecnica, elenco, sinopse e adicione diretamente a sua watchlist ou historico.</p>
+      <div class="features">
+        <strong>Funcionalidades:</strong>
+        <ul>
+            <li>Busca em tempo real por titulo (filmes e series)</li>
+            <li>Filtros: genero, ano, idioma, nota minima</li>
+            <li>Card com poster, titulo, ano e nota media (TMDB)</li>
+            <li>Ver detalhes: sinopse, elenco, duracao, generos</li>
+            <li>Adicionar a Watchlist diretamente nos resultados</li>
+            <li>Marcar como assistido com avaliacao (1-5 oscars)</li>
+        </ul>
+      </div>
+      <div class="tips">
+          <strong>Dicas:</strong>
+          <ul><li>Use aspas para buscar titulos exatos: "Star Wars".</li>
+            <li>Filmes e series ja na sua watchlist ou historico sao destacados nos resultados.</li></ul>
+        </div>
+      <p class="no-screenshot"><em>Screenshot nao disponivel. Execute o script Playwright para gerar.</em></p>
+    </section>
+    <section id="watchlist">
+      <h2>3. Watchlist (Quero Assistir)</h2>
+      <p class="description">Lista pessoal de filmes e series que voce quer assistir. Organize por prioridade, filtre por genero e acompanhe os lancamentos da sua lista.</p>
+      <div class="features">
+        <strong>Funcionalidades:</strong>
+        <ul>
+            <li>Lista de filmes e series para assistir</li>
+            <li>Prioridade: alta, media, baixa</li>
+            <li>Filtros por tipo (filme/serie), genero e prioridade</li>
+            <li>Ordenar por data de adicao, titulo ou nota TMDB</li>
+            <li>Mover para historico ao assistir (com avaliacao)</li>
+            <li>Remover da watchlist</li>
+            <li>Notificacao quando um titulo da watchlist esta disponivel em streaming</li>
+        </ul>
+      </div>
+      <div class="tips">
+          <strong>Dicas:</strong>
+          <ul><li>Use a prioridade para separar o que vai assistir esta semana do que e para depois.</li>
+            <li>A watchlist e privada por padrao — voce escolhe o que compartilhar no feed social.</li></ul>
+        </div>
+      <p class="no-screenshot"><em>Screenshot nao disponivel. Execute o script Playwright para gerar.</em></p>
+    </section>
+    <section id="rankings">
+      <h2>4. Rankings</h2>
+      <p class="description">Veja os rankings de filmes e series mais bem avaliados pela comunidade CineTrack. Compare com suas proprias avaliacoes e descubra novos titulos.</p>
+      <div class="features">
+        <strong>Funcionalidades:</strong>
+        <ul>
+            <li>Top 50 filmes mais bem avaliados pela comunidade</li>
+            <li>Top 50 series mais bem avaliadas</li>
+            <li>Filtros por genero, ano e numero minimo de avaliacoes</li>
+            <li>Sua avaliacao vs media da comunidade</li>
+            <li>Botao para adicionar a watchlist ou marcar como assistido</li>
+            <li>Acesso ao perfil dos principais avaliadores</li>
+        </ul>
+      </div>
+      <div class="tips">
+          <strong>Dicas:</strong>
+          <ul><li>Rankings com menos de 5 avaliacoes sao marcados com (*) — podem mudar rapidamente.</li>
+            <li>Filmes sem nota propria aparecem com a nota TMDB como referencia.</li></ul>
+        </div>
+      <p class="no-screenshot"><em>Screenshot nao disponivel. Execute o script Playwright para gerar.</em></p>
+    </section>
+    <section id="alerts">
+      <h2>5. Alertas de Lancamentos</h2>
+      <p class="description">Gerencie alertas para ser notificado quando novos episodios, temporadas ou filmes estiverem disponiveis. Nunca mais perca um lancamento.</p>
+      <div class="features">
+        <strong>Funcionalidades:</strong>
+        <ul>
+            <li>Listagem de alertas ativos por titulo</li>
+            <li>Criar alerta para: novo episodio, nova temporada, estreia em cinema/streaming</li>
+            <li>Plataformas monitoradas: Netflix, Prime, Disney+, HBO, Cinema</li>
+            <li>Historico de notificacoes enviadas</li>
+            <li>Ativar/desativar alerta sem excluir</li>
+            <li>Integrado com calendario pessoal (exportar .ics)</li>
+        </ul>
+      </div>
+      <div class="tips">
+          <strong>Dicas:</strong>
+          <ul><li>Ative alertas para series em andamento para acompanhar episodio a episodio.</li>
+            <li>O sistema verifica novos lancamentos via TMDB duas vezes ao dia.</li></ul>
+        </div>
+      <p class="no-screenshot"><em>Screenshot nao disponivel. Execute o script Playwright para gerar.</em></p>
+    </section>
+  </div>
+
+  <footer>
+    <p>RVM Tech &mdash; Tracking de Filmes e Series</p>
+    <p>Documento gerado automaticamente com Playwright + TypeScript</p>
+  </footer>
+</body>
+</html>
