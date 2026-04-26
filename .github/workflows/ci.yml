@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [master, dev]
+    branches: [main, dev]
   pull_request:
-    branches: [master]
+    branches: [main]
 
 concurrency:
   group: rvm-cinetrack-ci-${{ github.ref }}
@@ -33,7 +33,7 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     needs: build-and-test
-    if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/dev'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev'
     steps:
       - uses: actions/checkout@v4
 
