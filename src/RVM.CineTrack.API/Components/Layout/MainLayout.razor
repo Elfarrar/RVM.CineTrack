@@ -1,7 +1,9 @@
 @inherits LayoutComponentBase
 
+<a class="skip-nav" href="#main-content">Pular para o conteúdo</a>
+
 <div class="app-shell">
-    <nav class="sidebar">
+    <nav class="sidebar" aria-label="Menu principal">
         <div class="sidebar-header">
             <span class="brand-mark">C</span>
             <span class="navbar-brand">RVM.CineTrack</span>
@@ -29,7 +31,7 @@
             </NavLink>
         </div>
     </nav>
-    <main class="main-content">
+    <main id="main-content" class="main-content" role="main">
         @Body
     </main>
 </div>
