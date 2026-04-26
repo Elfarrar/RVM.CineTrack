@@ -22,7 +22,7 @@ jobs:
           key: ${{ secrets.PROD_SSH_KEY }}
           script: |
             cd /opt/rvmtech/cinetrack
-            git pull origin master
+            git pull origin main
             export POSTGRES_PASSWORD=${{ secrets.DB_PASSWORD }}
             export API_KEY=${{ secrets.API_KEY }}
             export TMDB_API_KEY=${{ secrets.TMDB_API_KEY }}
