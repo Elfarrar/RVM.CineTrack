@@ -8,7 +8,7 @@ namespace RVM.CineTrack.API.Services;
 
 public class MediaSyncService(CineTrackDbContext db, TmdbClient tmdb, ILogger<MediaSyncService> logger)
 {
-    public async Task<Media?> SyncMovieAsync(int tmdbId)
+    public virtual async Task<Media?> SyncMovieAsync(int tmdbId)
     {
         var existing = await db.Media.FirstOrDefaultAsync(m => m.TmdbId == tmdbId && m.Type == MediaType.Movie);
         var detail = await tmdb.GetMovieDetailAsync(tmdbId);
@@ -47,7 +47,7 @@ public class MediaSyncService(CineTrackDbContext db, TmdbClient tmdb, ILogger<Me
         return existing;
     }
 
-    public async Task<Media?> SyncTvSeriesAsync(int tmdbId, bool syncEpisodes = false)
+    public virtual async Task<Media?> SyncTvSeriesAsync(int tmdbId, bool syncEpisodes = false)
     {
         var existing = await db.Media
             .Include(m => m.Seasons)
